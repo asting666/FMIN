@@ -51,7 +51,6 @@ class FMIN_Full_Model(nn.Module):
         prot_emb_2d = self.prot_enc_2d(prot_2d_graph)
         drug_emb_3d = self.drug_enc_3d(drug_3d_input)
         prot_emb_3d = self.prot_enc_3d(prot_3d_input)
-        # 收集所有 Embedding
         embeddings_dict = {
             'drug_1D': drug_emb_1d, 'prot_1D': prot_emb_1d,
             'drug_2D': drug_emb_2d, 'prot_2D': prot_emb_2d,
@@ -64,5 +63,6 @@ class FMIN_Full_Model(nn.Module):
         )
         combined_feat = torch.cat([drug_fused, prot_fused], dim=1)
         pred = self.mlp(combined_feat)
+
 
         return pred, embeddings_dict
