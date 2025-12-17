@@ -23,13 +23,17 @@ def compute_gram_volume_matrix(anchor, complements):
     all_modalities = [anchor] + complements
     num_modalities = len(all_modalities)
     matrix_blocks = [[None for _ in range(num_modalities)] for _ in range(num_modalities)]
-    for r, mod_r in enumerate(all_modalities):
-        for c, mod_c in enumerate(all_modalities):
-            if r == 0:  # Row is Anchor
+    for r in range(num_modalities):
+        for c in range(num_modalities):
+            mod_r = all_modalities[r]
+            mod_c = all_modalities[c]
+            if r == 0 and c == 0:
+                matrix_blocks[r][c] = torch.ones(batch_size, batch_size).to(anchor.device)
+            elif r == 0:
                 matrix_blocks[r][c] = torch.matmul(mod_r, mod_c.T)
-            elif c == 0:  # Col is Anchor
-                matrix_blocks[r][c] = torch.matmul(anchor, mod_r.T).T
-            else:  # Within-sample complements interaction
+            elif c == 0:
+                matrix_blocks[r][c] = torch.matmul(mod_r.T, anchor).T 
+            else:
                 dot_prod = torch.sum(mod_r * mod_c, dim=1)
                 matrix_blocks[r][c] = dot_prod.unsqueeze(0).expand(batch_size, -1)
     gram_rows = [torch.stack(matrix_blocks[r], dim=-1) for r in range(num_modalities)]
@@ -48,7 +52,7 @@ def compute_group_loss(group_dict, anchor_key, temperature=0.1):
     volume_matrix = compute_gram_volume_matrix(feat_anchor, feat_complements)
     logits = -volume_matrix / temperature
     labels = torch.arange(logits.shape[0], device=logits.device)
-    return F.cross_entropy(logits, labels)
+    return F.cross_entropy(logits.T, labels)
 
 def compute_alignment_loss(projected_dict):
     total_loss = 0.0
