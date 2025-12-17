@@ -5,7 +5,6 @@ from torch_geometric.nn import GINConv, GINEConv, global_add_pool
 
 
 class DrugGIN(nn.Module):
-
     def __init__(self, num_features_xd=78, hidden_dim=32, output_dim=128, dropout=0.2):
         super(DrugGIN, self).__init__()
         nn1 = nn.Sequential(
@@ -22,7 +21,6 @@ class DrugGIN(nn.Module):
         )
         self.conv2 = GINConv(nn2)
         self.bn2 = nn.BatchNorm1d(hidden_dim)
-        # 全连接层映射到最终 Embedding 维度
         self.fc1 = nn.Linear(hidden_dim, 1024)
         self.fc2 = nn.Linear(1024, output_dim)
         self.dropout = nn.Dropout(dropout)
@@ -82,5 +80,5 @@ class ProteinGINE(nn.Module):
             x = F.relu(x)
         x = global_add_pool(x, batch)
         out = self.fc(x)
-
+        
         return out
